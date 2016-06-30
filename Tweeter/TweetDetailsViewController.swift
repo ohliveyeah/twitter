@@ -68,10 +68,12 @@ class TweetDetailsViewController: UIViewController {
     
     @IBAction func onTapRetweet(sender: AnyObject) {
         TwitterClient.sharedInstance.retweet(idString!)
+        TwitterClient.sharedInstance.getTweet(idString!)
     }
     
     @IBAction func onTapFavorite(sender: AnyObject) {
         TwitterClient.sharedInstance.favorite(idString!)
+        TwitterClient.sharedInstance.getTweet(idString!)
     }
     
     @IBAction func onTapBack(sender: AnyObject) {

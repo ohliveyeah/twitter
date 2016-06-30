@@ -104,7 +104,13 @@ class TwitterClient: BDBOAuth1SessionManager {
             }
         )}
     
-
+    func getTweet (idString: String) {
+        GET("1.1/statuses/show.json?id=\(idString)", parameters: nil, success: { (task:NSURLSessionDataTask, response: AnyObject?) in
+            print("successfully fetched tweet")
+            }, failure: { (task: NSURLSessionDataTask?, error: NSError) -> Void in
+                print ("error: \(error.localizedDescription)")
+            }
+        )}
 
     func favorite(idString: String) {
         POST("1.1/favorites/create.json?id=\(idString)", parameters: nil, success: { (task:NSURLSessionDataTask, response: AnyObject?) in
