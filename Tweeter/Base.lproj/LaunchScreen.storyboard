@@ -3,6 +3,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--View Controller-->
@@ -17,11 +18,17 @@
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="CXhzcaxVAAEuSEm" translatesAutoresizingMaskIntoConstraints="NO" id="LmS-hC-RpW">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="CXhzcaxVAAEuSEm" translatesAutoresizingMaskIntoConstraints="NO" id="LmS-hC-RpW">
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                             </imageView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="xb3-aO-Qok" firstAttribute="top" secondItem="LmS-hC-RpW" secondAttribute="bottom" id="4JD-qX-mX1"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="LmS-hC-RpW" secondAttribute="trailing" constant="-20" id="Dyw-Ml-XTm"/>
+                            <constraint firstItem="LmS-hC-RpW" firstAttribute="top" secondItem="Ze5-6b-2t3" secondAttribute="topMargin" id="EJI-0O-H49"/>
+                            <constraint firstItem="LmS-hC-RpW" firstAttribute="leading" secondItem="Ze5-6b-2t3" secondAttribute="leadingMargin" constant="-20" id="MFL-jb-Tr9"/>
+                        </constraints>
                     </view>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
                 </viewController>
