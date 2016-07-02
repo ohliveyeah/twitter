@@ -11,10 +11,15 @@ import UIKit
 class PostViewController: UIViewController {
 
     @IBOutlet weak var tweetTextField: UITextField!
+    var maxLength = 140
+    var currentLength = 0
+    @IBOutlet weak var counterLabel: UILabel!
+    @IBOutlet weak var warningLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        warningLabel.hidden = true
         // Do any additional setup after loading the view.
     }
 
@@ -28,18 +33,23 @@ class PostViewController: UIViewController {
     }
     
     @IBAction func didTapTweet(sender: AnyObject) {
+        if (tweetTextField.text?.characters.count > 140) {
+            warningLabel.hidden = false
+        }
+        else {
         TwitterClient.sharedInstance.composeTweet(tweetTextField.text!)
             dismissViewControllerAnimated(true, completion: nil)
+        }
     }
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    
+    @IBAction func didTypeStatus(sender: AnyObject) {
+        warningLabel.hidden = true
+        currentLength = (tweetTextField.text?.characters.count)!
+        var charactersLeft = maxLength - currentLength
+        counterLabel.text = "\(charactersLeft) Left"
+        if (charactersLeft < 0) {
+            tweetTextField.deleteBackward()
+        }
     }
-    */
 
 }

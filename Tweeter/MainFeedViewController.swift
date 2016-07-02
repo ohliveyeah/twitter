@@ -8,15 +8,25 @@
 
 import UIKit
 
-class MainFeedViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class MainFeedViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate {
+    
     var tweets: [Tweet] = []
-    var limit = 20
+    //var limit = 20
     @IBOutlet weak var tableView: UITableView!
+    var isMoreDataLoading = false
+    var loadingMoreView:InfiniteScrollActivityView?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
+        
+        // Set up Infinite Scroll loading indicator
+        let frame = CGRectMake(0, tableView.contentSize.height, tableView.bounds.size.width, InfiniteScrollActivityView.defaultHeight)
+        loadingMoreView = InfiniteScrollActivityView(frame: frame)
+        loadingMoreView!.hidden = true
+        tableView.addSubview(loadingMoreView!)
+
         
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(refreshControlAction(_:)), forControlEvents: UIControlEvents.ValueChanged)
@@ -29,6 +39,7 @@ class MainFeedViewController: UIViewController, UITableViewDelegate, UITableView
                 print (error.localizedDescription)
         })
     }
+
     func refreshControlAction(refreshControl: UIRefreshControl) {
         TwitterClient.sharedInstance.homeTimeLine({ (tweets: [Tweet]) in
             self.tweets = tweets
@@ -49,36 +60,7 @@ class MainFeedViewController: UIViewController, UITableViewDelegate, UITableView
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("TweetCell") as! TweetTableViewCell
         let tweet = tweets[indexPath.row]
-        cell.idString = tweet.tweetID
-        cell.tweetLabel.text = tweet.text
-        cell.timestampLabel.text = tweet.timestampText
-        cell.usernameLabel.text = "@\(tweet.username!)"
-        cell.retweetLabel.text = String(tweet.retweetCount)
-        cell.favoriteLabel.text = String(tweet.favoritesCount)
-        cell.nameLabel.text = tweet.name!
-        
-        let profilePicURL = tweet.author?.profileURL
-        let imageRequest = NSURLRequest(URL: profilePicURL!)
-        
-        cell.profilePic.setImageWithURLRequest(
-            imageRequest,
-            placeholderImage: nil,
-            success: { (imageRequest, imageResponse, image) -> Void in
-                // imageResponse will be nil if the image is cached
-                if imageResponse != nil {
-                    cell.profilePic.alpha = 0.0
-                    cell.profilePic.image = image
-                    UIView.animateWithDuration(0.3, animations: { () -> Void in
-                        cell.profilePic.alpha = 1.0
-                    })
-                } else {
-                    cell.profilePic.image = image
-                }
-            }, failure: { (imageRequest, imageResponse, error) -> Void in
-                print(error.localizedDescription)
-        })
-        
-        cell.profilePic.setImageWithURL(profilePicURL!)
+        cell.setCell(tweet)
         return cell
     }
     
@@ -96,7 +78,8 @@ class MainFeedViewController: UIViewController, UITableViewDelegate, UITableView
         vc.screennameString = "@\(tweet.author!.screenname!)"
         vc.tweetText = tweet.text
         vc.user = tweet.author
-        
+        vc.favorited = tweet.favorited
+        vc.retweeted = tweet.retweeted
         
         let profilePicURL = tweet.author?.profileURL
         let imageRequest = NSURLRequest(URL: profilePicURL!)
@@ -120,6 +103,7 @@ class MainFeedViewController: UIViewController, UITableViewDelegate, UITableView
         let cell = self.tableView.cellForRowAtIndexPath(indexPath!) as! TweetTableViewCell
     
         TwitterClient.sharedInstance.retweet(cell.idString!)
+        cell.retweetImage.image = UIImage(named: "retweet-action-on")
         TwitterClient.sharedInstance.homeTimeLine({ (tweets: [Tweet]) in
             self.tweets = tweets
             self.tableView.reloadData()
@@ -135,7 +119,14 @@ class MainFeedViewController: UIViewController, UITableViewDelegate, UITableView
         let indexPath = self.tableView.indexPathForRowAtPoint(buttonPosition)
         let cell = self.tableView.cellForRowAtIndexPath(indexPath!) as! TweetTableViewCell
         
-        TwitterClient.sharedInstance.favorite(cell.idString!)
+        if (!(tweets[(indexPath?.row)!].favorited)) {
+            TwitterClient.sharedInstance.favorite(cell.idString!)
+            cell.favoriteImage.image = UIImage(named: "like-action-on")
+        }
+        else {
+            TwitterClient.sharedInstance.unfavorite(cell.idString!)
+            cell.favoriteImage.image = UIImage(named: "like-action")
+        }
         
         TwitterClient.sharedInstance.homeTimeLine({ (tweets: [Tweet]) in
             self.tweets = tweets
@@ -145,6 +136,42 @@ class MainFeedViewController: UIViewController, UITableViewDelegate, UITableView
                 print (error.localizedDescription)
         })
         
+    }
+    
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+        if (!isMoreDataLoading) {
+            // Calculate the position of one screen length before the bottom of the results
+            let scrollViewContentHeight = tableView.contentSize.height
+            let scrollOffsetThreshold = scrollViewContentHeight - tableView.bounds.size.height
+            
+            if(scrollView.contentOffset.y > scrollOffsetThreshold && tableView.dragging) {
+                
+                let frame = CGRectMake(0, tableView.contentSize.height, tableView.bounds.size.width, InfiniteScrollActivityView.defaultHeight)
+                loadingMoreView?.frame = frame
+                loadingMoreView!.startAnimating()
+                print("Loading data!!")
+                loadMoreData()
+            }
+            
+        }
+    }
+    
+    func loadMoreData() {
+        
+        if (!isMoreDataLoading) {
+            isMoreDataLoading = true
+            let currentTweet = tweets[tweets.count - 1]
+            let idString = currentTweet.tweetID
+            //print(idString)
+            TwitterClient.sharedInstance.homeTimelineSinceID (idString!, success: { (tweets: [Tweet]) in
+                self.isMoreDataLoading = false
+                self.tweets.appendContentsOf(tweets)
+                self.tableView.reloadData()
+                }, failure: { (error: NSError) -> () in
+                    self.isMoreDataLoading = false
+                    print (error.localizedDescription)
+            })
+        }
     }
     
 }

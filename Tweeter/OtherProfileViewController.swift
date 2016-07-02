@@ -55,12 +55,10 @@ class OtherProfileViewController: UIViewController, UITableViewDataSource, UITab
         if (self.user!.followersCount > 1000000) {
             let shortFollowersCount = (self.user!.followersCount) / 1000000
             self.followersLabel.text = "\(shortFollowersCount)M"
-            print("Holy cow!")
         }
         else if (self.user!.followersCount > 1000) {
             let shortFollowersCount = (self.user!.followersCount) / 1000
             self.followersLabel.text = "\(shortFollowersCount)k"
-            print("That's a lot")
         }
         else {
              self.followersLabel.text = String(self.user!.followersCount)
@@ -69,12 +67,10 @@ class OtherProfileViewController: UIViewController, UITableViewDataSource, UITab
         if (self.user!.friendsCount > 1000000) {
             let shortFollowersCount = (self.user!.friendsCount) / 1000000
             self.followingLabel.text = "\(shortFollowersCount)M"
-            print("Holy cow!")
         }
         else if (self.user!.friendsCount > 1000) {
             let shortFollowersCount = (self.user!.friendsCount) / 1000
             self.followingLabel.text = "\(shortFollowersCount)k"
-            print("That's a lot")
         }
         else {
             self.followingLabel.text = String(self.user!.friendsCount)
@@ -103,7 +99,33 @@ class OtherProfileViewController: UIViewController, UITableViewDataSource, UITab
                     self.tweets = tweets
                     self.tableView.reloadData()
                     
-                    
+                    //if (self.user!.coverPhotoUsed) {
+                        let coverPhotoURL = self.user!.coverURL
+                        if let coverPhotoURL = coverPhotoURL {
+                            let secondImageRequest = NSURLRequest(URL: coverPhotoURL)
+                            self.coverImageView.setImageWithURLRequest(secondImageRequest, placeholderImage: nil, success: { (secondImageRequest, secondImageResponse, image) -> Void in
+                                if secondImageResponse != nil {
+                                    self.coverImageView.alpha = 0.0
+                                    self.coverImageView.image = image
+                                    UIView.animateWithDuration(0.3, animations: { () -> Void in
+                                        self.coverImageView.alpha = 1.0
+                                    })
+                                } else {
+                                    self.coverImageView.image = image
+                                }}, failure: { (imageRequest, imageResponse, error) -> Void in
+                                    print(error.localizedDescription)
+                                    
+                            })
+                        } else {
+                            print ("no cover photo")
+                            self.coverImageView.hidden = true
+                            
+                        }
+//                    } else {
+//                        print ("still no cover photo")
+//                        self.coverImageView.hidden = true
+//                    }
+//
                     
                     }, failure: { (error: NSError) -> () in
                         print (error.localizedDescription)
@@ -129,36 +151,7 @@ class OtherProfileViewController: UIViewController, UITableViewDataSource, UITab
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("TweetCell") as! TweetTableViewCell
         let tweet = tweets[indexPath.row]
-        cell.idString = tweet.tweetID
-        cell.tweetLabel.text = tweet.text
-        cell.timestampLabel.text = tweet.timestampText
-        cell.usernameLabel.text = "@\(tweet.username!)"
-        cell.retweetLabel.text = String(tweet.retweetCount)
-        cell.favoriteLabel.text = String(tweet.favoritesCount)
-        cell.nameLabel.text = tweet.name!
-        
-        let profilePicURL = tweet.author?.profileURL
-        let imageRequest = NSURLRequest(URL: profilePicURL!)
-        
-        cell.profilePic.setImageWithURLRequest(
-            imageRequest,
-            placeholderImage: nil,
-            success: { (imageRequest, imageResponse, image) -> Void in
-                // imageResponse will be nil if the image is cached
-                if imageResponse != nil {
-                    cell.profilePic.alpha = 0.0
-                    cell.profilePic.image = image
-                    UIView.animateWithDuration(0.3, animations: { () -> Void in
-                        cell.profilePic.alpha = 1.0
-                    })
-                } else {
-                    cell.profilePic.image = image
-                }
-            }, failure: { (imageRequest, imageResponse, error) -> Void in
-                print(error.localizedDescription)
-        })
-        
-        cell.profilePic.setImageWithURL(profilePicURL!)
+        cell.setCell(tweet)
         return cell
     }
     

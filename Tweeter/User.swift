@@ -17,6 +17,8 @@ class User: NSObject {
     var friendsCount = 0
     var location: String?
     var statusesCount = 0
+    var coverURL: NSURL?
+    var coverPhotoUsed = true
     
     var dictionary: NSDictionary?
       static let userDidLogoutNotification = "UserDidLogout"
@@ -32,10 +34,20 @@ class User: NSObject {
         statusesCount = (dictionary["statuses_count"] as? Int) ?? 0
         
         var profileURLString = dictionary["profile_image_url_https"] as? String
-        profileURLString = profileURLString!.stringByReplacingOccurrencesOfString("_normal", withString: "")
+        
 
         if let profileURLString = profileURLString {
-            profileURL = NSURL(string: profileURLString)
+            let newProfileURLString = profileURLString.stringByReplacingOccurrencesOfString("_normal", withString: "")
+            profileURL = NSURL(string: newProfileURLString)
+        }
+        
+        coverPhotoUsed = (dictionary["profile_use_background_image"]?.boolValue)!
+        
+        var coverURLString = dictionary["profile_banner_url"] as? String
+        
+        if let coverURLString = coverURLString {
+            let newCoverURLString = coverURLString.stringByReplacingOccurrencesOfString("_normal", withString: "")
+            coverURL = NSURL(string: coverURLString)
         }
     }
     

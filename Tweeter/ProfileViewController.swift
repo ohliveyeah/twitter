@@ -9,7 +9,7 @@
 import UIKit
 
 class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-
+    
     @IBOutlet weak var profilePicture: UIImageView!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var screennameLabel: UILabel!
@@ -18,6 +18,7 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
     @IBOutlet weak var followersLabel: UILabel!
     @IBOutlet weak var followingLabel: UILabel!
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var coverPhoto: UIImageView!
     
     @IBAction func didTapCompose(sender: AnyObject) {
         
@@ -71,16 +72,41 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
                         (tweets: [Tweet]) in
                         self.tweets = tweets
                         self.tableView.reloadData()
+                        
+                        if (self.user!.coverPhotoUsed) {
+                            let coverPhotoURL = self.user!.coverURL
+                            if let coverPhotoURL = coverPhotoURL {
+                                let secondImageRequest = NSURLRequest(URL: coverPhotoURL)
+                                self.coverPhoto.setImageWithURLRequest(secondImageRequest, placeholderImage: nil, success: { (secondImageRequest, secondImageResponse, image) -> Void in
+                                    if secondImageResponse != nil {
+                                        self.coverPhoto.alpha = 0.0
+                                        self.coverPhoto.image = image
+                                        UIView.animateWithDuration(0.3, animations: { () -> Void in
+                                            self.coverPhoto.alpha = 1.0
+                                        })
+                                    } else {
+                                        self.coverPhoto.image = image
+                                    }}, failure: { (imageRequest, imageResponse, error) -> Void in
+                                        print(error.localizedDescription)
+                                        
+                                })
+                            } else {
+                                self.coverPhoto.hidden = true
+                                
+                            }
+                        } else {
+                            
+                            self.coverPhoto.hidden = true
+                        }
                         }, failure: { (error: NSError) -> () in
                             print (error.localizedDescription)
                     })
-
                 }, failure: { (imageRequest, imageResponse, error) -> Void in
                     print(error.localizedDescription)
             })
             
-           // self.profilePicture.setImageWithURL(self.profileURL!)
-
+            // self.profilePicture.setImageWithURL(self.profileURL!)
+            
         }) { (error: NSError) in
             print(error.localizedDescription)
         }
@@ -89,47 +115,16 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
     func setProfileUser(userParem: User) {
         user = userParem
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        print("1")
         let cell = tableView.dequeueReusableCellWithIdentifier("TweetCell") as! TweetTableViewCell
-        print("2")
         let tweet = tweets[indexPath.row]
-        cell.idString = tweet.tweetID
-        cell.tweetLabel.text = tweet.text
-        cell.timestampLabel.text = tweet.timestampText
-        cell.usernameLabel.text = "@\(tweet.username!)"
-        cell.retweetLabel.text = String(tweet.retweetCount)
-        cell.favoriteLabel.text = String(tweet.favoritesCount)
-        cell.nameLabel.text = tweet.name!
-        
-        let profilePicURL = tweet.author?.profileURL
-        let imageRequest = NSURLRequest(URL: profilePicURL!)
-        
-        cell.profilePic.setImageWithURLRequest(
-            imageRequest,
-            placeholderImage: nil,
-            success: { (imageRequest, imageResponse, image) -> Void in
-                // imageResponse will be nil if the image is cached
-                if imageResponse != nil {
-                    cell.profilePic.alpha = 0.0
-                    cell.profilePic.image = image
-                    UIView.animateWithDuration(0.3, animations: { () -> Void in
-                        cell.profilePic.alpha = 1.0
-                    })
-                } else {
-                    cell.profilePic.image = image
-                }
-            }, failure: { (imageRequest, imageResponse, error) -> Void in
-                print(error.localizedDescription)
-        })
-        
-        cell.profilePic.setImageWithURL(profilePicURL!)
+       cell.setCell(tweet)
         return cell
     }
     
@@ -139,5 +134,5 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
     }
     
     
-
+    
 }

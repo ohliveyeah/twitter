@@ -19,6 +19,8 @@ class Tweet: NSObject {
     var author: User?
     var timestampText: String?
     var tweetID: String?
+    var retweeted = false
+    var favorited = false
     
     init(dictionary: NSDictionary) {
         text = dictionary["text"] as? String
@@ -28,6 +30,8 @@ class Tweet: NSObject {
         username = author!.screenname
         name = author!.name
         tweetID = dictionary["id_str"] as? String
+        retweeted = (dictionary["retweeted"] as? Bool)!
+        favorited = (dictionary["favorited"] as? Bool)!
         
         let timestampString = dictionary["created_at"] as? String
         if let timestampString = timestampString {

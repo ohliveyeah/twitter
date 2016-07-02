@@ -17,6 +17,8 @@ class TweetDetailsViewController: UIViewController {
     @IBOutlet weak var retweetLabel: UILabel!
     @IBOutlet weak var favoritesLabel: UILabel!
     @IBOutlet weak var timestampLabel: UILabel!
+    @IBOutlet weak var favoriteImage: UIImageView!
+    @IBOutlet weak var retweetImage: UIImageView!
     
     var idString: String?
     var nameString: String?
@@ -28,6 +30,8 @@ class TweetDetailsViewController: UIViewController {
     var profileURL: NSURL?
     var imageRequest: NSURLRequest?
     var user: User?
+    var favorited = false
+    var retweeted = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -38,6 +42,12 @@ class TweetDetailsViewController: UIViewController {
         retweetLabel.text = retweetNumber
         favoritesLabel.text = favoritesNumber
         timestampLabel.text = timestampString
+        if (favorited) {
+            favoriteImage.image = UIImage(named: "like-action-on")
+        }
+        if (retweeted) {
+            retweetImage.image = UIImage(named: "retweet-action-on")
+        }
         
                 profilePicture.setImageWithURLRequest(
                     imageRequest!,
@@ -67,12 +77,20 @@ class TweetDetailsViewController: UIViewController {
     }
     
     @IBAction func onTapRetweet(sender: AnyObject) {
-        TwitterClient.sharedInstance.retweet(idString!)
+        if (!retweeted) { TwitterClient.sharedInstance.retweet(idString!) }
+        //if (retweeted) { TwitterClient.sharedInstance.unretweet(idString!) }
         TwitterClient.sharedInstance.getTweet(idString!)
-    }
+    } 
     
     @IBAction func onTapFavorite(sender: AnyObject) {
-        TwitterClient.sharedInstance.favorite(idString!)
+        if (!favorited) {
+            TwitterClient.sharedInstance.favorite(idString!)
+            favoriteImage.image = UIImage(named: "like-action-on")
+        }
+        if (favorited) {
+            TwitterClient.sharedInstance.unfavorite(idString!)
+            favoriteImage.image = UIImage(named: "like-action")
+        }
         TwitterClient.sharedInstance.getTweet(idString!)
     }
     
